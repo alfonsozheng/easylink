@@ -159,14 +159,22 @@ class TestPlayerJumping:
         assert player.vx > 0, "Should allow horizontal movement in air"
 
     def test_land_on_platform(self, player):
-        """REQ-003.3: Landing on platform restores ground state."""
+        """REQ-003.3: Landing on platform restores ground state.
+        
+        Player at y=115 with downward velocity vy=2 should land on
+        platform at y=110 (top) after one update step.
+        Player rect: (x-10, y-20, 20, 20), bottom = y when standing.
+        Platform: (80, 110, 40, 20), top = 110.
+        After vy += gravity, player collides and gets placed on top.
+        """
         player.x = 100
-        player.y = 100
-        player.vy = 5  # falling
-        terrain_rects = [pygame.Rect(80, 110, 40, 20)]  # platform below
+        player.y = 115
+        player.vy = 2  # Falling slowly
+        player.vx = 0
+        terrain_rects = [pygame.Rect(80, 110, 40, 20)]  # platform, top at 110
         player.update(terrain_rects, [])
         assert player.on_ground, "Should be on ground after landing"
-        assert player.vy >= 0, "Vertical velocity should be reset"
+        assert player.vy == 0, "Vertical velocity should be zero after landing"
 
     def test_pit_death(self, player):
         """REQ-003.4: Falling into pit causes death."""
@@ -333,9 +341,7 @@ class TestPlayerWeapon:
 
     def test_machine_gun_rate(self, player):
         """REQ-006.3: Machine gun has faster fire rate."""
-        import importlib
         from src import weapon as wmod
-        importlib.reload(wmod)
         mg_config = wmod.WEAPON_CONFIGS['MACHINE_GUN']
         basic_config = wmod.WEAPON_CONFIGS['BASIC']
         assert mg_config['fire_rate'] < basic_config['fire_rate'], \
